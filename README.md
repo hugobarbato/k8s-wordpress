@@ -136,11 +136,11 @@ spec:
           mountPath: /var/lib/mysql
         resources:
           requests:
-            memory: "64M"  # vMemoria minima alocada
-            cpu: "250m"    # vCPU minima alocada
+            memory: "100Mi" # vMemoria minima alocada
+            cpu: "100m" # (0.1 vCPU) - vCPU minima alocada
           limits:
-            memory: "128M" # vMemoria maxima alocada
-            cpu: "500m"    # vCPU maxima alocada
+            memory: "200Mi" # vMemoria maxima alocada
+            cpu: "200m" # (0.2 vCPU) - vCPU maxima alocada
       volumes:
       - name: mysql-persistent-storage
         persistentVolumeClaim:
@@ -256,11 +256,11 @@ spec:
           mountPath: /var/www/html
         resources:
           requests:
-            memory: "64M"  # vMemoria minima alocada
-            cpu: "250m"    # vCPU minima alocada
+            memory: "64Mi" # vMemoria minima alocada
+            cpu: "100m" #(0.1 vCPU) - vCPU minima alocada
           limits:
-            memory: "128M" # vMemoria maxima alocada
-            cpu: "500m"    # vCPU maxima alocada
+            memory: "128Mi" # vMemoria maxima alocada
+            cpu: "200m" #(0.2 vCPU) - vCPU maxima alocada
       volumes:
       - name: wordpress-persistent-storage
         persistentVolumeClaim:
