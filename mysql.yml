@@ -26,8 +26,7 @@ metadata:
   name: wordpress-mysql
   labels:
     app: wordpress
-spec:
-  replicas: 3 
+spec: 
   selector:
     matchLabels:
       app: wordpress
