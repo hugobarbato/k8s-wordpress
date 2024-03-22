@@ -1,4 +1,5 @@
-apiVersion: apps/v1 #  for k8s versions before 1.9.0 use apps/v1beta2  and before 1.8.0 use extensions/v1beta1
+--- # Deployment
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: wordpress
@@ -19,15 +20,15 @@ spec:
         tier: frontend
     spec:
       containers:
-      - image: wordpress:4.8-apache
+      - image: wordpress:lastest
         name: wordpress
         env:
         - name: WORDPRESS_DB_HOST
-          value: wordpress-mysql
+          value: mysql
         - name: WORDPRESS_DB_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: mysql-pass
+              name: MYSQL_ROOT_PASSWORD_SECRET
               key: password
         ports:
         - containerPort: 80
@@ -35,6 +36,13 @@ spec:
         volumeMounts:
         - name: wordpress-persistent-storage
           mountPath: /var/www/html
+        resources:
+          requests:
+            memory: "64M"
+            cpu: "250m"
+          limits:
+            memory: "256M"
+            cpu: "1000m"
       volumes:
       - name: wordpress-persistent-storage
         persistentVolumeClaim:
