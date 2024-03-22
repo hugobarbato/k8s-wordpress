@@ -13,14 +13,12 @@ Para começarmos vamos preparar nosso ambiente linux para implementação desse 
 #### Instalação do K3S no Ubuntu 
 
 1. **Atualize o sistema**: Antes de começar, é sempre uma boa prática atualizar os pacotes do seu sistema Ubuntu. 
-
 ```bash  
     # Atualizar o software
     sudo apt update && sudo apt upgrade -y  
 ``` 
 
 2. **Instale o K3S**: O K3S é uma distribuição leve do Kubernetes fácil de instalar. Execute o seguinte comando para instalá-lo. 
-
 ```bash  
     # Instalar K3S com kubectl 
     curl -sfL https://get.k3s.io | sh - 
@@ -31,7 +29,6 @@ Para começarmos vamos preparar nosso ambiente linux para implementação desse 
 ``` 
 
 3. **Verifique a instalação**: Após a instalação, confirme se o K3S está rodando corretamente. 
-
 ```bash
     # Logar com usuário ubuntu (caso pedir senha, utilizar `ubuntu`)
     su ubuntu
@@ -64,14 +61,14 @@ apiVersion: v1
 kind: Secret
 type: Opaque
 data: 
-  password: MYSQL_ROOT_PASSWORD # Valor da Secret
+  password: eW91cnBhc3N3b3Jk # Valor da Secret
 metadata:  
-  name: MYSQL_ROOT_PASSWORD_SECRET # Nome da Secret
+  name: mysql-root-password-secret # Nome da Secret
 ```
 
 Outra opção para essa etapa é setar essa configuração por meio do seguinte comando: 
 ```bash
-kubectl create secret generic MYSQL_ROOT_PASSWORD_SECRET --from-literal=password='MYSQL_ROOT_PASSWORD'
+kubectl create secret generic mysql-root-password-secret --from-literal=password='MYSQL_ROOT_PASSWORD'
 ```
 
 #### 2. PersistentVolume - mysql/pv.yml
@@ -107,8 +104,6 @@ metadata:
     app: wordpress
 spec:
   replicas: 3 # Numero de replicas
-  minReplicas: 3 # Numero minimo de replicas
-  maxReplicas: 5 # Numero maximo de replicas
   selector:
     matchLabels:
       app: wordpress
@@ -128,7 +123,7 @@ spec:
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: MYSQL_ROOT_PASSWORD_SECRET #Nome da Secret criada
+              name: mysql-root-password-secret #Nome da Secret criada
               key: password
         livenessProbe:
           tcpSocket:
@@ -230,8 +225,6 @@ metadata:
     app: wordpress
 spec: 
   replicas: 3 # Numero de replicas
-  minReplicas: 3 # Numero minimo de replicas
-  maxReplicas: 5 # Numero maximo de replicas
   selector:
     matchLabels:
       app: wordpress
@@ -253,7 +246,7 @@ spec:
         - name: WORDPRESS_DB_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: MYSQL_ROOT_PASSWORD_SECRET
+              name: mysql-root-password-secret
               key: password
         ports:
         - containerPort: 80

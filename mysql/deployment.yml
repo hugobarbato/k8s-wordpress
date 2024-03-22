@@ -6,9 +6,7 @@ metadata:
   labels:
     app: wordpress
 spec:
-  replicas: 3  
-  minReplicas: 3  
-  maxReplicas: 5  
+  replicas: 3
   selector:
     matchLabels:
       app: wordpress
@@ -28,7 +26,7 @@ spec:
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: MYSQL_ROOT_PASSWORD_SECRET
+              name: mysql-root-password-secret
               key: password
         livenessProbe:
           tcpSocket:
