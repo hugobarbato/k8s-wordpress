@@ -54,106 +54,104 @@ Você precisará de alguns arquivos YAML de configuração para o WordPress e My
 
 ##### 1. PersistentVolume - mysql-pvc.yml
 
-    O PersistentVolume é um recurso que representa um volume persistente no cluster.
+O PersistentVolume é um recurso que representa um volume persistente no cluster.
 
-    ```yaml
-    apiVersion: v1
-    kind: PersistentVolumeClaim
-    metadata:
-      name: mysql-pvc
-      labels:
-        app: mysql
-    spec:
-      accessModes:
-        - ReadWriteOnce
-      resources:
-        requests:
-          storage: 10Gi
-    ```
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: mysql-pvc
+    labels:
+    app: mysql
+spec:
+    accessModes:
+    - ReadWriteOnce
+    resources:
+    requests:
+        storage: 10Gi
+```
 
-    O PVC é usado pelo pod do MySQL para requisitar o armazenamento físico.
+O PVC é usado pelo pod do MySQL para requisitar o armazenamento físico.
 
 ##### 2. Deployment - mysql-deployment.yml
 
-    O Deployment gerencia pods do MySQL, garantindo que o número desejado de instâncias esteja rodando e atualiza os pods de forma declarativa.
+O Deployment gerencia pods do MySQL, garantindo que o número desejado de instâncias esteja rodando e atualiza os pods de forma declarativa.
 
-    ```yaml
-    apiVersion: apps/v1
-    kind: Deployment
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+name: mysql
+spec:
+selector:
+    matchLabels:
+    app: mysql
+strategy:
+    type: Recreate
+template:
     metadata:
-    name: mysql
-    spec:
-    selector:
-        matchLabels:
+    labels:
         app: mysql
-    strategy:
-        type: Recreate
-    template:
-        metadata:
-        labels:
-            app: mysql
-        spec:
-        containers:
-        - name: mysql
-            image: mysql:5.7
-            env:
-            - name: MYSQL_ROOT_PASSWORD
-            value: "yourpassword"
-            ports:
-            - containerPort: 3306
-            name: mysql
-            volumeMounts:
-            - name: mysql-persistent-storage
-            mountPath: /var/lib/mysql
-        volumes:
+    spec:
+    containers:
+    - name: mysql
+        image: mysql:5.7
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+        value: "yourpassword"
+        ports:
+        - containerPort: 3306
+        name: mysql
+        volumeMounts:
         - name: mysql-persistent-storage
-            persistentVolumeClaim:
-            claimName: mysql-pvc
-    ```
+        mountPath: /var/lib/mysql
+    volumes:
+    - name: mysql-persistent-storage
+        persistentVolumeClaim:
+        claimName: mysql-pvc
+```
 
 ##### 3. Service - mysql-service.yml
 
-    O Service define como expor o aplicativo MySQL, geralmente dentro do cluster, permitindo que outros serviços ou pods se conectem ao MySQL.
+O Service define como expor o aplicativo MySQL, geralmente dentro do cluster, permitindo que outros serviços ou pods se conectem ao MySQL.
 
-    ```yaml
-    apiVersion: v1
-    kind: Service
-    metadata:
-    name: mysql
-    labels:
-        app: mysql 
-    spec:
-    ports:
-    - name: tcp-mysql-port
-    - port: 3306
-    selector:
-        app: mysql 
-    ```
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+name: mysql
+labels:
+    app: mysql 
+spec:
+ports:
+- name: tcp-mysql-port
+- port: 3306
+selector:
+    app: mysql 
+```
 
 ##### 4. Aplicando as configurações
 
-    1. Salve cada uma dessas configurações em arquivos `.yml` separados.
-    2. Aplique-os usando `kubectl apply -f <arquivo>.yml` para cada arquivo.
+1. Salve cada uma dessas configurações em arquivos `.yml` separados.
+2. Aplique-os usando `kubectl apply -f <arquivo>.yml` para cada arquivo.
 
-    ```bash
-        kubectl apply -f mysql-pvc.yaml
-        kubectl apply -f mysql-deployment.yaml
-        kubectl apply -f mysql-service.yaml
-    ```
+```bash
+    kubectl apply -f mysql-pvc.yaml
+    kubectl apply -f mysql-deployment.yaml
+    kubectl apply -f mysql-service.yaml
+```
 
 ##### 5. Considerações
 
-    - **Segurança**: Garanta que a senha do MySQL (`MYSQL_ROOT_PASSWORD`) não seja armazenada em texto claro nos arquivos. Use secrets do Kubernetes.
-    - **Storage**: Ajuste o tamanho do PVC (`resources.requests.storage`) conforme necessário. 
-    - **Versão do MySQL**: Certifique-se de que a versão do MySQL (`image: mysql:5.7`) esteja alinhada com seus requisitos de aplicação.
+- **Segurança**: Garanta que a senha do MySQL (`MYSQL_ROOT_PASSWORD`) não seja armazenada em texto claro nos arquivos. Use secrets do Kubernetes.
+- **Storage**: Ajuste o tamanho do PVC (`resources.requests.storage`) conforme necessário. 
+- **Versão do MySQL**: Certifique-se de que a versão do MySQL (`image: mysql:5.7`) esteja alinhada com seus requisitos de aplicação.
 
-    Este é um guia básico para configurar o MySQL no Kubernetes, e dependendo das necessidades específicas do seu ambiente, pode ser necessário fazer ajustes adicionais.
+Este é um guia básico para configurar o MySQL no Kubernetes, e dependendo das necessidades específicas do seu ambiente, pode ser necessário fazer ajustes adicionais.
 
-  
+
 
 #### WordPress 
-
-  
 
 1. **PersistentVolume** e **PersistentVolumeClaim**: Similar ao MySQL, para persistência dos dados. 
 
