@@ -49,33 +49,29 @@ Você poderá clonar este repositorio ou criar os arquivos por linha de comando 
 
 ### MySQL 
 
-Para configurar o MySQL no Kubernetes envolve a criação de um conjunto de configurações, incluindo `Secret`, `PersistentVolume` (PV), `Deployment` e `Service`. 
+Para configurar o MySQL no Kubernetes envolve a criação de um conjunto de configurações, incluindo `Secret`, `PersistentVolumeClaim` (PVC), `Deployment` e `Service`. 
 
-#### 1. Secret - mysql/secret.yml
+#### 1. Secret
 
-Uma boa pratica em Kubernets é armazenar segredos em cofres seguros ao inves do codigo, podemos criar um component do K8S chamado Secret para isso.
+Uma boa pratica em Kubernets é armazenar segredos em cofres seguros ao inves do codigo, para criar a secret execute o seguinte comando:
 
-```yaml
---- # Secrets
-apiVersion: v1
-kind: Secret
-type: Opaque
-data: 
-  password: eW91cnBhc3N3b3Jk # Valor da Secret
-metadata:  
-  name: mysql-root-password-secret # Nome da Secret
-```
-
-Outra opção para essa etapa é setar essa configuração por meio do seguinte comando: 
 ```bash
-kubectl create secret generic mysql-root-password-secret --from-literal=password='MYSQL_ROOT_PASSWORD'
+cat <<EOF >./kustomization.yaml
+secretGenerator:
+- name: mysql-pass
+  literals:
+  - password=YOUR_PASSWORD
+EOF
 ```
 
-#### 2. PersistentVolume - mysql/pv.yml
+Esse comando criou um arquivo `kustomization.yaml` que irá ser nosso arquivo de configuração principal.
+ 
 
-O PersistentVolume é um recurso que representa um volume persistente no cluster.
-```yaml
---- # PV
+#### 2. PersistentVolumeClaim - mysql.yml
+
+O PersistentVolumeClaim é um recurso que representa um volume persistente no cluster, adicione ao arquivo mysql.yml o seguinte trecho:
+```yaml 
+--- #PVC
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -87,23 +83,22 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 8Gi #Espaço disponibilizado para o MySQL
+      storage: 10Gi #Espaço disponibilizado para o MySQL
 ```
 O PVC(PersistentVolumeClaim) é usado pelo pod do MySQL para requisitar o armazenamento físico.
 
-#### 3. Deployment - mysql/deployment.yml
+#### 3. Deployment - mysql.yml
 
-O Deployment gerencia pods do MySQL, garantindo que o número desejado de instâncias esteja rodando e atualiza os pods de forma declarativa.
-```yaml
+O Deployment gerencia o pod do MySQL, adicione ao arquivo mysql.yml o seguinte trecho:
+```yaml 
 --- # Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: wordpress-mysql   
+  name: wordpress-mysql
   labels:
     app: wordpress
-spec:
-  replicas: 3 # Numero de replicas
+spec: 
   selector:
     matchLabels:
       app: wordpress
@@ -117,17 +112,23 @@ spec:
         tier: mysql
     spec:
       containers:
-      - name: mysql # Nome do Container/Pod
-        image: mysql:latest # Imagem Docker escolhida para o MYSQL
+      - image: mysql:8.0
+        name: mysql
         env:
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: mysql-root-password-secret #Nome da Secret criada
+              name: mysql-pass
               key: password
-        livenessProbe:
-          tcpSocket:
-            port: 3306
+        - name: MYSQL_DATABASE
+          value: wordpress
+        - name: MYSQL_USER
+          value: wordpress
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-pass
+              key: password
         ports:
         - containerPort: 3306
           name: mysql
@@ -136,21 +137,20 @@ spec:
           mountPath: /var/lib/mysql
         resources:
           requests:
-            memory: "100Mi" # vMemoria minima alocada
-            cpu: "100m" # (0.1 vCPU) - vCPU minima alocada
+            memory: "200Mi"
+            cpu: "100m" #(0.1 vCPU)
           limits:
-            memory: "200Mi" # vMemoria maxima alocada
-            cpu: "200m" # (0.2 vCPU) - vCPU maxima alocada
+            memory: "1000Mi"
+            cpu: "500m" #(0.5 vCPU)
       volumes:
       - name: mysql-persistent-storage
         persistentVolumeClaim:
           claimName: mysql-pv-claim
-
 ```
 
-#### 4. Service - mysql/service.yml
+#### 4. Service - mysql.yml
 
-O Service define como expor o aplicativo MySQL, geralmente dentro do cluster, permitindo que outros serviços ou pods se conectem ao MySQL.
+O Service define como expor o aplicativo MySQL, geralmente dentro do cluster, permitindo que outros serviços ou pods se conectem ao MySQL, adicione ao arquivo mysql.yml o seguinte trecho:
 ```yaml
 --- # Service
 apiVersion: v1
@@ -167,36 +167,21 @@ spec:
     tier: mysql
   clusterIP: None
 ```
-
-#### 5. Aplicando as configurações
-
-1. Se optou por criar cada arquivo usando linha de comando você poderá aplicar essas configurações usando o comando `kubectl apply -f <arquivo>.yml`, conforme exemplo:
-```bash
-    kubectl apply -f mysql/secret.yml
-    kubectl apply -f mysql/pv.yml
-    kubectl apply -f mysql/deployment.yml
-    kubectl apply -f mysql/service.yml
-```
-2. Se optou por clonar o repositorio basta rodar o comando: 
-```bash
-    kubectl apply -f mysql.yml
-```
-
-
-#### 6. Considerações
+ 
+#### 5. Considerações
 
 - **Segurança**: Garanta que a senha do MySQL (`MYSQL_ROOT_PASSWORD`) não seja armazenada em texto claro nos arquivos. Edite as secrets do Kubernetes utilizando `kubectl edit secret mysql-root-password`.
 - **Storage**: Ajuste o tamanho do PV (`resources.requests.storage`) conforme necessário. 
-- **Versão do MySQL**: Certifique-se de que a versão do MySQL (`image: mysql:lastest`) esteja alinhada com seus requisitos de aplicação WordPress.
+- **Versão do MySQL**: Certifique-se de que a versão do MySQL (`image: mysql:8`) esteja alinhada com seus requisitos de aplicação WordPress.
 
 
 ### WordPress 
-Para configurar o WordPress no Kubernetes envolve a criação de um conjunto de configurações, incluindo `PersistentVolume` (PV), `Deployment`, `Service` e `Ingress`. 
+Para configurar o WordPress no Kubernetes envolve a criação de um conjunto de configurações, incluindo `PersistentVolumeClaim` (PV), `Deployment` e `Service`. 
 
-#### 1. PersistentVolume - wordpress/pv.yml
-O PersistentVolume é um recurso que representa um volume persistente no cluster.
+#### 1. PersistentVolumeClaim - wordpress.yml
+O PersistentVolume é um recurso que representa um volume persistente no cluster, adicione ao arquivo wordpress.yml o seguinte trecho:
 ```yaml
---- # PV
+--- #PVC
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -208,13 +193,13 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 5Gi #Espaço disponibilizado para o WordPress
+      storage: 10Gi #Espaço disponibilizado para o WordPress
 ```
 O PVC(PersistentVolumeClaim) é usado pelo pod do WordPress para requisitar o armazenamento físico.
 
-#### 2. Deployment - wordpress/deployment.yml
+#### 2. Deployment - wordpress.yml
 
-O Deployment gerencia pods do WordPress, garantindo que o número desejado de instâncias esteja rodando e atualiza os pods de forma declarativa.
+O Deployment gerencia pods do WordPress, garantindo que o número desejado de instâncias esteja rodando e atualiza os pods de forma declarativa, adicione ao arquivo wordpress.yml o seguinte trecho:
 ```yaml
 --- # Deployment
 apiVersion: apps/v1
@@ -224,7 +209,7 @@ metadata:
   labels:
     app: wordpress
 spec: 
-  replicas: 3 # Numero de replicas
+  replicas: 3
   selector:
     matchLabels:
       app: wordpress
@@ -238,16 +223,18 @@ spec:
         tier: frontend
     spec:
       containers:
-      - name: wordpress  # Nome do Container/Pod
-        image: wordpress:lastest # Imagem Docker escolhida para o WordPress
+      - image: wordpress:6.2.1-apache
+        name: wordpress3
         env:
         - name: WORDPRESS_DB_HOST
-          value: mysql
+          value: wordpress-mysql
         - name: WORDPRESS_DB_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: mysql-root-password-secret
+              name: mysql-pass
               key: password
+        - name: WORDPRESS_DB_USER
+          value: wordpress
         ports:
         - containerPort: 80
           name: wordpress
@@ -256,22 +243,22 @@ spec:
           mountPath: /var/www/html
         resources:
           requests:
-            memory: "64Mi" # vMemoria minima alocada
-            cpu: "100m" #(0.1 vCPU) - vCPU minima alocada
+            memory: "200Mi"
+            cpu: "100m" #(0.1 vCPU)
           limits:
-            memory: "128Mi" # vMemoria maxima alocada
-            cpu: "200m" #(0.2 vCPU) - vCPU maxima alocada
+            memory: "1000Mi"
+            cpu: "500m" #(0.5 vCPU)
       volumes:
       - name: wordpress-persistent-storage
         persistentVolumeClaim:
           claimName: wp-pv-claim
 ```
 
-#### 3. Service - wordpress/service.yml
+#### 3. Service - wordpress.yml
 
-O Service define como expor o aplicativo WordPress, geralmente dentro do cluster, permitindo que outros serviços ou pods se conectem ao WordPress.
+O Service define como expor o aplicativo WordPress, geralmente dentro do cluster, permitindo que outros serviços ou pods se conectem ao WordPress, adicione ao arquivo wordpress.yml o seguinte trecho:
 ```yaml
---- # Service
+--- # Service 
 apiVersion: v1
 kind: Service
 metadata:
@@ -279,57 +266,49 @@ metadata:
   labels:
     app: wordpress
 spec:
-  type: LoadBalancer 
   ports:
     - port: 80
   selector:
     app: wordpress
     tier: frontend
+  type: LoadBalancer
 ```
 
-#### 4. Ingress - wordpress/ingress.yml
+### Aplicando as configurações
 
-Para acessar o WordPress de fora do cluster K3S
-```yaml
---- # Ingress
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: wordpress-ingress
-spec:
-  rules:
-  - http:
-      paths:
-      - path: / 
-        pathType: Prefix 
-        backend:
-          service:
-            name: wordpress  
-            port:
-              number: 80 
-```
-
-#### 5. Aplicando as configurações
-
-1. Se optou por criar cada arquivo usando linha de comando você poderá aplicar essas configurações usando o comando `kubectl apply -f <arquivo>.yml`, conforme exemplo:
+1. Adicione os arquivos criados ao `kustomization.yaml` como recursos a serem criados, rodando o comando a seguir: 
 ```bash
-    kubectl apply -f wordpress/pv.yml 
-    kubectl apply -f wordpress/deployment.yml
-    kubectl apply -f wordpress/service.yml
-    kubectl apply -f wordpress/ingress.yml
+  cat <<EOF >>./kustomization.yaml
+  resources:
+    - mysql.yml
+    - wordpress.yml
+  EOF
 ```
-2. Se optou por clonar o repositorio basta rodar o comando: 
+<detail>
+ <summary>Caso não tenha criado os arquivos pode optar por baixar eles por meio do seguinte comando</summary>
+ ```bash
+   curl -LO https://github.com/hugobarbato/k8s-wordpress/blob/main/mysql.yml
+   curl -LO https://github.com/hugobarbato/k8s-wordpress/blob/main/wordpress.yml
+ ```
+</detail>
+
+2. Aplique o arquivo `kustomization.yaml` atraves do comando: 
 ```bash
-    kubectl apply -f wordpress.yml
+  kubectl apply -k ./
 ```
 
-
-
-  
+3. Você pode confirmar a criação dos recursos utilizando o seguinte comando: 
+```bash 
+  kubectl get pods,pv,pvc,service,secret,deployment 
+```
 
 ## 3. Acesso ao WordPress 
-Após a aplicação dos arquivos de configuração, o WordPress estará acessível através do endereço IP do seu Ingress. Você pode encontrar este endereço IP com o seguinte comando: 
+Após a aplicação dos arquivos de configuração, o WordPress estará acessível através do endereço IP do Serviço. Você pode encontrar este endereço IP e Porta com o seguinte comando: 
 ```bash 
-kubectl get wordpress-ingress 
+kubectl get service 
 ``` 
-Agora, abra um navegador e acesse o WordPress usando o endereço IP encontrado. 
+Agora, abra um navegador e acesse o WordPress usando o endereço IP e Porta encontrado. 
+
+## 4. Testando a resiliencia
+
+Ao matar qualquer pod da solução, por conta da `strategy` estar como `Recreate` nos deployments ele serão automaticamente recriados sem perder as informações por conta do `PersistentVolume`. 
