@@ -5,8 +5,7 @@ metadata:
   name: wordpress-mysql
   labels:
     app: wordpress
-spec:
-  replicas: 3
+spec: 
   selector:
     matchLabels:
       app: wordpress
@@ -20,17 +19,23 @@ spec:
         tier: mysql
     spec:
       containers:
-      - name: mysql
-        image: mysql:latest
+      - image: mysql:8.0
+        name: mysql
         env:
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: mysql-root-password-secret
+              name: mysql-pass
               key: password
-        livenessProbe:
-          tcpSocket:
-            port: 3306
+        - name: MYSQL_DATABASE
+          value: wordpress
+        - name: MYSQL_USER
+          value: wordpress
+        - name: MYSQL_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-pass
+              key: password
         ports:
         - containerPort: 3306
           name: mysql
@@ -43,7 +48,7 @@ spec:
             cpu: "100m" #(0.1 vCPU)
           limits:
             memory: "200Mi"
-            cpu: "200m" #(0.2 vCPU)
+            cpu: "500m" #(0.5 vCPU)
       volumes:
       - name: mysql-persistent-storage
         persistentVolumeClaim:
