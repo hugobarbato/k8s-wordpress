@@ -6,9 +6,9 @@ metadata:
   labels:
     app: wordpress
 spec:
-  type: LoadBalancer 
   ports:
     - port: 80
   selector:
     app: wordpress
     tier: frontend
+  type: LoadBalancer

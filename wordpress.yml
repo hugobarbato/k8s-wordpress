@@ -1,3 +1,4 @@
+--- # Service
 apiVersion: v1
 kind: Service
 metadata:
@@ -11,7 +12,7 @@ spec:
     app: wordpress
     tier: frontend
   type: LoadBalancer
----
+--- #PVC
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -23,15 +24,16 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 20Gi
----
+      storage: 10Gi
+--- # Deployment
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: wordpress
   labels:
     app: wordpress
-spec:
+spec: 
+  replicas: 3
   selector:
     matchLabels:
       app: wordpress
@@ -46,7 +48,7 @@ spec:
     spec:
       containers:
       - image: wordpress:6.2.1-apache
-        name: wordpress
+        name: wordpress3
         env:
         - name: WORDPRESS_DB_HOST
           value: wordpress-mysql
@@ -63,7 +65,30 @@ spec:
         volumeMounts:
         - name: wordpress-persistent-storage
           mountPath: /var/www/html
+        resources:
+          requests:
+            memory: "100Mi"
+            cpu: "100m" #(0.1 vCPU)
+          limits:
+            memory: "200Mi"
+            cpu: "200m" #(0.2 vCPU)
       volumes:
       - name: wordpress-persistent-storage
         persistentVolumeClaim:
           claimName: wp-pv-claim
+--- # Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: wordpress-ingress
+spec:
+  rules:
+  - http:
+      paths:
+      - path: / 
+        pathType: Prefix 
+        backend:
+          service:
+            name: wordpress  
+            port:
+              number: 80 
