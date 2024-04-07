@@ -1,19 +1,4 @@
---- # PV
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: mysql-volume
-  labels:
-    type: local
-spec:
-  storageClassName: manual
-  capacity:
-    storage: 10Gi
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: "/mnt/data"  
---- # PVC
+--- #PVC
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

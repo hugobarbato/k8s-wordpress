@@ -11,24 +11,6 @@ spec:
   resources:
     requests:
       storage: 10Gi
---- # PV
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: mysql-volume
-  labels:
-    type: local
-spec:
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: manual
-  claimRef:
-    name: mysql-pv-claim 
-  capacity:
-    storage: 10Gi
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: "/mnt/data"
 --- # Deployment
 apiVersion: apps/v1
 kind: Deployment
