@@ -323,21 +323,21 @@ kubectl delete <POD>
 ## 5. Prints da Execução no KillerCoda
 
 ### 1º Configurando o K8S no Ubuntu:
-![Print do terminal configurando o kubernets no ubuntu](https://github.com/hugobarbato/k8s-wordpress/blob/main/imgs/p1.png)
+![Print do terminal configurando o kubernets no ubuntu](imgs/p1.png)
 
 ### 2º Configurando e subindo o Wordpress no K8S:
-![Print do terminal com comandos para configurar o wordpress no kubernets](https://github.com/hugobarbato/k8s-wordpress/blob/main/imgs/p2.png)
+![Print do terminal com comandos para configurar o wordpress no kubernets](imgs/p2.png)
 
 ### 3º Serviços Wordpress e MySQL rodando no Kubernets:
-![Print do terminal com os serviços wordpress e mysql executando no kubernets](https://github.com/hugobarbato/k8s-wordpress/blob/main/imgs/p3.png)
+![Print do terminal com os serviços wordpress e mysql executando no kubernets](imgs/p3.png)
 
 ### 4º Testando o serviço Wordpress:
-![Tela de configuração do Wordpress](https://github.com/hugobarbato/k8s-wordpress/blob/main/imgs/p4.png)
+![Tela de configuração do Wordpress](imgs/p4.png)
 
 
 ### 5º Executando o comando de delete do POD do MySQL:
-![Print do terminal com os comandos de deleção do pod do MySQL, posterior os serviços executando.](https://github.com/hugobarbato/k8s-wordpress/blob/main/imgs/p6.png)
+![Print do terminal com os comandos de deleção do pod do MySQL, posterior os serviços executando.](/imgs/p6.png)
 
 
 ### 6º Painel Admin do Wordpress rodando apos delete do pod do MySQL:
-![Tela de configuração do Wordpress](https://github.com/hugobarbato/k8s-wordpress/blob/main/imgs/p5.png)
+![Tela de configuração do Wordpress](imgs/p5.png)
