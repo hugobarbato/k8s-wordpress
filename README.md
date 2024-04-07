@@ -278,26 +278,26 @@ spec:
 
 1. Adicione os arquivos criados ao `kustomization.yaml` como recursos a serem criados, rodando o comando a seguir: 
 ```bash
-  cat <<EOF >>./kustomization.yaml
-  resources:
-    - mysql.yml
-    - wordpress.yml
-  EOF
+cat <<EOF >>./kustomization.yaml
+resources:
+  - mysql.yml
+  - wordpress.yml
+EOF
 ```
-<detail>
- <summary>Caso não tenha criado os arquivos pode optar por baixar eles por meio do seguinte comando</summary>
- ```bash
-   curl -LO https://github.com/hugobarbato/k8s-wordpress/blob/main/mysql.yml
-   curl -LO https://github.com/hugobarbato/k8s-wordpress/blob/main/wordpress.yml
- ```
-</detail>
 
-2. Aplique o arquivo `kustomization.yaml` atraves do comando: 
+* Caso não tenha criado os arquivos pode optar por baixar eles por meio do seguinte comando 
+```bash
+curl -LO https://raw.githubusercontent.com/hugobarbato/k8s-wordpress/main/mysql.yml
+curl -LO https://raw.githubusercontent.com/hugobarbato/k8s-wordpress/main/wordpress.yml
+```
+ 
+
+1. Aplique o arquivo `kustomization.yaml` atraves do comando: 
 ```bash
   kubectl apply -k ./
 ```
 
-3. Você pode confirmar a criação dos recursos utilizando o seguinte comando: 
+1. Você pode confirmar a criação dos recursos utilizando o seguinte comando: 
 ```bash 
   kubectl get pods,pv,pvc,service,secret,deployment 
 ```
@@ -312,3 +312,8 @@ Agora, abra um navegador e acesse o WordPress usando o endereço IP e Porta enco
 ## 4. Testando a resiliencia
 
 Ao matar qualquer pod da solução, por conta da `strategy` estar como `Recreate` nos deployments ele serão automaticamente recriados sem perder as informações por conta do `PersistentVolume`. 
+
+Teste usando o comando: 
+```bash
+kubectl delete <POD>
+```
