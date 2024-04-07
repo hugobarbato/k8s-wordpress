@@ -67,11 +67,11 @@ spec:
           mountPath: /var/www/html
         resources:
           requests:
-            memory: "100Mi"
+            memory: "200Mi"
             cpu: "100m" #(0.1 vCPU)
           limits:
-            memory: "200Mi"
-            cpu: "200m" #(0.2 vCPU)
+            memory: "1000Mi"
+            cpu: "500m" #(0.5 vCPU)
       volumes:
       - name: wordpress-persistent-storage
         persistentVolumeClaim:

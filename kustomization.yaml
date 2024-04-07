@@ -1,0 +1,8 @@
+--- # Secrets
+secretGenerator:
+- name: mysql-pass
+  literals:
+  - password=YOUR_PASSWORD
+resources:
+  - mysql.yml
+  - wordpress.yml
