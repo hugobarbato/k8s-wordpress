@@ -1,5 +1,7 @@
 # Tutorial Kubernets WordPress 
- 
+
+REPO: [https://github.com/hugobarbato/k8s-wordpress/tree/main](https://github.com/hugobarbato/k8s-wordpress/tree/main)
+
 Para provisionar um site WordPress com um banco de dados MySQL no Kubernetes usando K3S, siga os passos abaixo.  
 
 `** Este guia é projetado para ser seguido em uma VM Ubuntu e assume conhecimento básico de Kubernetes e uso de linha de comando.`
